@@ -40,6 +40,26 @@ const resumeStorage = multer.diskStorage({
 });
 const uploadResume = multer({ storage: resumeStorage });
 
+// Функции валидации
+const validatePhone = (phone) => {
+  const phoneRegex = /[\d\s\-\+\(\)]{10,}/;
+  return phoneRegex.test(phone?.trim() || '');
+};
+
+const validateEmail = (email) => {
+  if (!email) return true; // Email необязателен
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const validateName = (name) => {
+  return name && name.trim().length >= 2;
+};
+
+const validateMessage = (message) => {
+  return message && message.trim().length >= 5;
+};
+
 const adminJs = getAdminJSConfig(prisma);
 
 const authenticateAdmin = async (email, password) => {
@@ -216,6 +236,21 @@ app.post('/api/service-orders/ajax', async (req, res) => {
 app.post('/api/contact-messages', async (req, res) => {
   try {
     const { full_name, phone, email, message } = req.body;
+    
+    // Валидация
+    if (!validateName(full_name)) {
+      return res.status(400).send('Пожалуйста, введите корректное ФИО (минимум 2 символа)');
+    }
+    if (!validatePhone(phone)) {
+      return res.status(400).send('Пожалуйста, введите корректный номер телефона');
+    }
+    if (!validateEmail(email)) {
+      return res.status(400).send('Пожалуйста, введите корректный Email');
+    }
+    if (!validateMessage(message)) {
+      return res.status(400).send('Сообщение должно содержать минимум 5 символов');
+    }
+    
     await prisma.contactMessage.create({
       data: {
         fullName: full_name,

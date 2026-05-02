@@ -188,13 +188,15 @@
                 </div>
                 <div class="resume-form-group">
                   <label class="resume-form-label">ФИО</label>
-                  <input type="text" class="resume-form-input--fio" name="full_name" required />
+                  <input type="text" class="resume-form-input--fio" name="full_name" 
+                    pattern="[А-Яа-яЁё\s-]{2,}" title="ФИО должно содержать только буквы и быть минимум 2 символа" required />
                 </div>
               </div>
               <div class="resume-form-fields-row">
                 <div class="resume-form-group">
                   <label class="resume-form-label">Номер телефона</label>
-                  <input type="tel" class="resume-form-input" name="phone" required />
+                  <input type="tel" class="resume-form-input" name="phone" 
+                    pattern="[\d\s\-\+\(\)]{10,}" title="Введите корректный номер телефона" required />
                 </div>
                 <div class="resume-form-group">
                     <label class="resume-form-label">Ваше резюме</label>
@@ -211,7 +213,7 @@
               <button type="submit" class="resume-submit-btn">Отправить</button>
               <div class="resume-form-consent">
                 <input type="checkbox" id="consent" name="consent" class="consent-checkbox" required />
-                <label for="consent" class="consent-label">Согласен(а) на обработку моих персональных данных</label>
+                <label for="consent" class="consent-label">Согласен(а) на обработку моих персональных данных (<a href="/documents/consent.txt" class="consent-link" download="consent.txt">Ознакомиться</a>)</label>
               </div>
             </form>
           </div>

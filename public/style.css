@@ -771,6 +771,18 @@ input, select, button, textarea { font-family: inherit; }
 
 .feedback-consent input { accent-color: var(--clr-orange); width: 15px; height: 15px; }
 
+.consent-link {
+  color: var(--clr-orange);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity var(--transition);
+}
+
+.consent-link:hover {
+  opacity: 0.8;
+}
+
 .contacts-map { border-top: 3px solid var(--clr-dark); }
 .contacts-map iframe { display: block; }
 
@@ -1098,6 +1110,19 @@ input, select, button, textarea { font-family: inherit; }
   height: 15px;
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+.service-modal-consent .consent-link {
+  color: #F97316;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+  opacity: 1;
+  transition: opacity var(--transition);
+}
+
+.service-modal-consent .consent-link:hover {
+  opacity: 0.8;
 }
 
 .catalog-hint {
@@ -2067,4 +2092,16 @@ input, select, button, textarea { font-family: inherit; }
 .toast.show {
   transform: translateY(0);
   opacity: 1;
+}
+
+.resume-form-consent .consent-link {
+  color: var(--clr-orange);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity var(--transition);
+}
+
+.resume-form-consent .consent-link:hover {
+  opacity: 0.8;
 }

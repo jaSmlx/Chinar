@@ -114,29 +114,32 @@
             <div class="feedback-form-row">
               <div class="feedback-field">
                 <label class="feedback-label" for="full-name">Ваше ФИО</label>
-                <input class="feedback-input" type="text" id="full-name" name="full_name" required />
+                <input class="feedback-input" type="text" id="full-name" name="full_name" 
+                  pattern="[А-Яа-яЁё\s-]{2,}" title="ФИО должно содержать только буквы и быть минимум 2 символа" required />
               </div>
               <div class="feedback-field">
                 <label class="feedback-label" for="phone">Ваш телефон</label>
-                <input class="feedback-input" type="tel" id="phone" name="phone" required />
+                <input class="feedback-input" type="tel" id="phone" name="phone" 
+                  pattern="[\d\s\-\+\(\)]{10,}" placeholder="+7 (999) 123-45-67" title="Введите корректный номер телефона" required />
               </div>
             </div>
 
             <div class="feedback-field">
               <label class="feedback-label" for="email">Ваш Email</label>
-              <input class="feedback-input" type="email" id="email" name="email" />
+              <input class="feedback-input" type="email" id="email" name="email" 
+                pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" title="Введите корректный адрес Email" />
             </div>
 
             <div class="feedback-field">
               <label class="feedback-label" for="message">Ваше сообщение</label>
-              <textarea class="feedback-textarea" id="message" name="message" required></textarea>
+              <textarea class="feedback-textarea" id="message" name="message" minlength="5" required></textarea>
             </div>
 
             <button class="feedback-submit" type="submit">Отправить</button>
 
             <label class="feedback-consent">
               <input type="checkbox" name="consent" required />
-              <span>Согласен(а) на обработку моих персональных данных</span>
+              <span>Согласен(а) на обработку моих персональных данных (<a href="/documents/consent.txt" class="consent-link" download="consent.txt">Ознакомиться</a>)</span>
             </label>
 
           </form>

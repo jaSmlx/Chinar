@@ -181,9 +181,9 @@
         <% if (typeof reviews !== 'undefined' && reviews.length > 0) { %>
           <% reviews.forEach(review => { %>
             <div class="review-card">
-              <div class="review-name"><%= review.author_name %></div>
+              <div class="review-name"><%= review.authorName %></div>
               <div class="review-line"></div>
-              <div class="review-text"><%= review.review_text %></div>
+              <div class="review-text"><%= review.reviewText %></div>
             </div>
           <% }) %>
         <% } else { %>
