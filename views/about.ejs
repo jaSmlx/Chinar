@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title : 'О компании — Чинар' %></title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="mobile.css">
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <img src="img/logo.png" alt="Чинар">
+        Чинар
+      </a>
+      <nav class="site-nav">
+        <a href="/">О компании</a>
+        <a href="/services">Услуги</a>
+        <a href="/clients">Клиенты</a>
+        <a href="/vacancies">Вакансии</a>
+        <a href="/contacts">Контакты</a>
+      </nav>
+      <button class="burger-btn" aria-label="Меню" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero-section">
+    <div class="hero-inner">
+
+      <div class="hero-image">
+        <img src="img/about/Наши компетенции.png" alt="Охранник Чинар" />
+      </div>
+
+      <div class="hero-content">
+
+        <p class="hero-label">Наши компетенции</p>
+
+        <h1 class="hero-title">
+          <span class="text-dark">Обеспечиваем защиту</span>
+          <span class="text-orange">жизни, здоровья граждан</span>
+          <span class="text-dark">и</span>
+          <span class="text-orange">охрану <br>имущества</span>
+        </h1>
+
+        <div class="hero-bottom">
+          <p class="hero-description">
+            Профессиональная охрана в Волгограде с 2004 года, в том числе
+            вооруженная. Наши специалисты имеют опыт работы в силовых структурах
+          </p>
+          <a href="/contacts" class="hero-cta">Свяжитесь с нами</a>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- STATS BAR (полностью статичный, как в исходном HTML) -->
+  <div class="stats-bar">
+    <div class="stats-bar-inner">
+
+      <div class="stat-item">
+        <span class="stat-number" data-target="20" data-suffix="+">0+</span>
+        <span class="stat-label">Лет на рынке</span>
+      </div>
+
+      <div class="stat-item">
+        <span class="stat-number" data-target="500" data-suffix="+">0+</span>
+        <span class="stat-label">Охраняемых объектов</span>
+      </div>
+
+      <div class="stat-item">
+        <span class="stat-number" data-target="200" data-suffix="+">0+</span>
+        <span class="stat-label">Сотрудников</span>
+      </div>
+
+      <div class="stat-item">
+        <span class="stat-number" data-target="24" data-suffix="/7">0/7</span>
+        <span class="stat-label">Мониторинг</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section class="about-section">
+    <div class="about-inner">
+
+      <div class="section-header">
+        <h2 class="section-title">О компании</h2>
+        <div class="section-line"></div>
+        <span class="section-number">01</span>
+      </div>
+
+      <div class="about-body">
+
+        <div class="about-text">
+          <p>
+            <span class="company-name">ООО ЧОП «Чинар»</span> — надежное охранное предприятие,
+            предоставляющее широкий спектр услуг по обеспечению безопасности объектов и граждан.
+            Компания успешно работает на рынке с 2004 года, предлагая эффективные решения как для
+            юридических, так и для физических лиц.
+          </p>
+
+          <p>
+            Основными направлениями деятельности являются физическая охрана, организация
+            пропускного режима и использование современных технических средств безопасности.
+            В своей работе компания сочетает профессионализм сотрудников, оперативность
+            реагирования и индивидуальный подход к каждому клиенту, что позволяет обеспечивать
+            высокий уровень надежности и доверия.
+          </p>
+        </div>
+
+        <div class="about-photo">
+          <img src="img/about/Фото компании.png" alt="Фото компании Чинар" />
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ADVANTAGES -->
+  <section class="advantages-section">
+    <div class="advantages-inner">
+
+      <div class="section-header">
+        <h2 class="section-title">Наши преимущества</h2>
+        <div class="section-line"></div>
+        <span class="section-number">02</span>
+      </div>
+
+      <div class="advantages-grid">
+
+        <div class="advantage-card depth">
+          <img src="img/about/Быстродействие.png" alt="Быстродействие" />
+          <div class="advantage-label">Быстродействие</div>
+        </div>
+
+        <div class="advantage-card depth">
+          <img src="img/about/Проф сотрудники.png" alt="Профессиональные сотрудники" />
+          <div class="advantage-label">Профессиональные сотрудники</div>
+        </div>
+
+        <div class="advantage-card depth">
+          <img src="img/about/Надежность2.avif" alt="Надежность" />
+          <div class="advantage-label">Надежность</div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section class="reviews-section">
+    <div class="reviews-inner">
+
+      <div class="section-header">
+        <h2 class="section-title">Отзывы клиентов</h2>
+        <div class="section-line"></div>
+        <span class="section-number">03</span>
+      </div>
+
+      <div class="reviews-list">
+        <% if (typeof reviews !== 'undefined' && reviews.length > 0) { %>
+          <% reviews.forEach(review => { %>
+            <div class="review-card">
+              <div class="review-name"><%= review.author_name %></div>
+              <div class="review-line"></div>
+              <div class="review-text"><%= review.review_text %></div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <p>Отзывов пока нет.</p>
+        <% } %>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer" id="contacts">
+    <div class="footer-inner">
+
+      <div class="footer-col">
+        <span>Компания Чинар</span>
+        <span>+7 844 260-14-00</span>
+        <span>+7 927 514-23-70</span>
+        <span>chopohrana@mail.ru</span>
+        <span>ИНН: 3447021430</span>
+        <span>ОГРН: 1043400515344</span>
+        <span>©2004-2026</span>
+      </div>
+
+      <div class="footer-col">
+        <span>400001, Волгоградская область, город Волгоград, Академическая ул., д. 32, помещ. 3</span>
+      </div>
+
+      <div class="footer-col">
+        <span>Карта сайта:</span>
+        <a href="/">О компании</a>
+        <a href="/services">Услуги</a>
+        <a href="/clients">Клиенты</a>
+        <a href="/vacancies">Вакансии</a>
+        <a href="/contacts">Контакты</a>
+      </div>
+
+      <div class="footer-col">
+        <span>Лицензия</span>
+        <span>Л056-00106-34/00030263 от 20.05.2009. Продлена Управлением Федеральной службы войск национальной гвардии Российской Федерации по Волгоградской области</span>
+      </div>
+
+    </div>
+  </footer>
+
+</body>
+</html>

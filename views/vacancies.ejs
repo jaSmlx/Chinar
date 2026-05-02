@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title : 'Вакансии — Чинар' %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobile.css" />
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <img src="img/logo.png" alt="Чинар">
+        Чинар
+      </a>
+      <nav class="site-nav">
+        <a href="/">О компании</a>
+        <a href="/services">Услуги</a>
+        <a href="/clients">Клиенты</a>
+        <a href="/vacancies">Вакансии</a>
+        <a href="/contacts">Контакты</a>
+      </nav>
+      <button class="burger-btn" aria-label="Меню" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="vacancies-page">
+
+    <section class="vacancies-section">
+      <div class="vacancies-inner">
+
+        <h2 class="vacancies-heading">Доступные вакансии</h2>
+
+        <div class="vacancies-list">
+          <% if (typeof vacancies !== 'undefined' && vacancies.length > 0) { %>
+            <% vacancies.forEach(vacancy => { %>
+              <div class="vacancy-accordion" data-vacancy="<%= vacancy.title %>">
+                <div class="vacancy-item vacancy-trigger">
+                  <span class="vacancy-name"><%= vacancy.title %></span>
+                  <span class="vacancy-chevron-icon">&#8249;</span>
+                </div>
+                <div class="vacancy-details">
+                  <div class="vacancy-details-inner">
+                    <div class="vacancy-details-grid">
+                      <div class="vacancy-detail-block">
+                        <span class="vacancy-detail-label">График работы</span>
+                        <span class="vacancy-detail-value"><%= vacancy.schedule || '—' %></span>
+                      </div>
+                      <div class="vacancy-detail-block">
+                        <span class="vacancy-detail-label">Оклад</span>
+                        <span class="vacancy-detail-value vacancy-salary">
+                          от <%= vacancy.salaryFrom %> <%= vacancy.salaryUnit %>
+                        </span>
+                      </div>
+                      <div class="vacancy-detail-block">
+                        <span class="vacancy-detail-label">Опыт</span>
+                        <span class="vacancy-detail-value"><%= vacancy.experience || '—' %></span>
+                      </div>
+                      <div class="vacancy-detail-block">
+                        <span class="vacancy-detail-label"><%= vacancy.conditions ? 'Условия' : 'Требования' %></span>
+                        <span class="vacancy-detail-value">
+                          <%= vacancy.requirements || vacancy.conditions || '—' %>
+                        </span>
+                      </div>
+                    </div>
+                    <ul class="vacancy-duties">
+                      <% if (vacancy.duties && vacancy.duties.length > 0) { %>
+                        <% vacancy.duties.forEach(duty => { %>
+                          <li><%= duty %></li>
+                        <% }) %>
+                      <% } %>
+                    </ul>
+                    <button class="vacancy-apply-btn" data-vacancy="<%= vacancy.title %>" data-vacancy-id="<%= vacancy.id %>">
+                      Откликнуться на вакансию →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <p>Нет открытых вакансий.</p>
+          <% } %>
+        </div>
+      </div>
+    </section>
+
+    <section class="employment-benefits-section">
+      <div class="employment-benefits-inner">
+        <h2 class="employment-benefits-title">Преимущества работы у нас</h2>
+        <div class="employment-benefits-grid">
+          <div class="benefit-card">
+            <div class="benefit-visual">
+              <span class="benefit-number">01</span>
+              <img src="img/vacancies/Зп.png" alt="Стабильная ЗП">
+            </div>
+            <div class="benefit-info">
+              <h3 class="benefit-title">Стабильная ЗП</h3>
+              <p class="benefit-desc">Выплаты без задержек, прозрачная система оплаты</p>
+            </div>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-visual">
+              <span class="benefit-number">02</span>
+              <img src="img/vacancies/График.png" alt="Удобный график">
+            </div>
+            <div class="benefit-info">
+              <h3 class="benefit-title">Удобный график</h3>
+              <p class="benefit-desc">Смены подбираются с учётом ваших возможностей</p>
+            </div>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-visual">
+              <span class="benefit-number">03</span>
+              <img src="img/vacancies/Рост.png" alt="Карьерный рост">
+            </div>
+            <div class="benefit-info">
+              <h3 class="benefit-title">Карьерный рост</h3>
+              <p class="benefit-desc">Возможность повышения до старшего смены и начальника охраны</p>
+            </div>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-visual">
+              <span class="benefit-number">04</span>
+              <img src="img/vacancies/Трудоустройство.png" alt="Трудоустройство">
+            </div>
+            <div class="benefit-info">
+              <h3 class="benefit-title">Трудоустройство</h3>
+              <p class="benefit-desc">Работа по ТК РФ, социальные гарантии</p>
+            </div>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-visual">
+              <span class="benefit-number">05</span>
+              <img src="img/vacancies/Обучение.png" alt="Обучение">
+            </div>
+            <div class="benefit-info">
+              <h3 class="benefit-title">Обучение</h3>
+              <p class="benefit-desc">Помощь в получении лицензии и обучение</p>
+            </div>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-visual">
+              <span class="benefit-number">06</span>
+              <img src="img/vacancies/Коллектив.png" alt="Надёжный коллектив">
+            </div>
+            <div class="benefit-info">
+              <h3 class="benefit-title">Надёжный коллектив</h3>
+              <p class="benefit-desc">Работа в стабильной и проверенной компании</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-vacancies-section">
+      <div class="contact-vacancies-inner">
+        <h2 class="contact-vacancies-title">Свяжитесь с нами</h2>
+        <div class="contact-vacancies-wrapper">
+          <div class="phone-contact-card">
+            <p class="phone-contact-heading">Свяжитесь с нами</p>
+            <p class="phone-contact-number">+7 844 260-14-00</p>
+            <p class="phone-contact-separator">ИЛИ</p>
+            <p class="phone-contact-number">+7 927 514-23-70</p>
+            <p class="phone-contact-separator">ИЛИ</p>
+            <p class="phone-contact-number">chopohrana@mail.ru</p>
+          </div>
+          <div class="resume-form-card" id="resumeForm">
+            <h3 class="resume-form-title">Отправьте резюме</h3>
+            <form action="/api/resumes" method="post" enctype="multipart/form-data" class="resume-form">
+              <div class="resume-form-fields-row">
+                <div class="resume-form-group">
+                  <label class="resume-form-label">Вакансия</label>
+                  <select class="resume-form-select" id="resumeVacancySelect" name="vacancy_id" required>
+                    <option value="">Выберите должность</option>
+                    <% vacancies.forEach(vacancy => { %>
+                      <option value="<%= vacancy.id %>"><%= vacancy.title %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div class="resume-form-group">
+                  <label class="resume-form-label">ФИО</label>
+                  <input type="text" class="resume-form-input--fio" name="full_name" required />
+                </div>
+              </div>
+              <div class="resume-form-fields-row">
+                <div class="resume-form-group">
+                  <label class="resume-form-label">Номер телефона</label>
+                  <input type="tel" class="resume-form-input" name="phone" required />
+                </div>
+                <div class="resume-form-group">
+                    <label class="resume-form-label">Ваше резюме</label>
+                    <div class="resume-upload-btn-wrapper">
+                      <label class="resume-upload-btn" for="resumeFileInput">
+                        <img src="img/vacancies/Резюме.png" alt="">
+                        <span class="resume-file-name">Загрузить резюме</span>
+                      </label>
+                      <input type="file" id="resumeFileInput" name="resume_file" accept=".pdf,.doc,.docx,.rtf,.txt" style="display:none;" />
+                    </div>
+                  </div>
+              </div>
+              <input type="hidden" name="vacancy_title" id="hiddenVacancyTitle" />
+              <button type="submit" class="resume-submit-btn">Отправить</button>
+              <div class="resume-form-consent">
+                <input type="checkbox" id="consent" name="consent" class="consent-checkbox" required />
+                <label for="consent" class="consent-label">Согласен(а) на обработку моих персональных данных</label>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <span>Компания Чинар</span>
+        <span>+7 844 260-14-00</span>
+        <span>+7 927 514-23-70</span>
+        <span>chopohrana@mail.ru</span>
+        <span>ИНН: 3447021430</span>
+        <span>ОГРН: 1043400515344</span>
+        <span>©2004-2026</span>
+      </div>
+      <div class="footer-col">
+        <span>400001, Волгоградская область, город Волгоград, Академическая ул., д. 32, помещ. 3</span>
+      </div>
+      <div class="footer-col">
+        <span>Карта сайта:</span>
+        <a href="/">О компании</a>
+        <a href="/services">Услуги</a>
+        <a href="/clients">Клиенты</a>
+        <a href="/vacancies">Вакансии</a>
+        <a href="/contacts">Контакты</a>
+      </div>
+      <div class="footer-col">
+        <span>Лицензия</span>
+        <span>Л056-00106-34/00030263 от 20.05.2009. Продлена Управлением Федеральной службы войск национальной гвардии Российской Федерации по Волгоградской области</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

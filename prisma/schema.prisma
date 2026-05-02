@@ -1,0 +1,167 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator adminJS {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. ADMIN_USERS
+model AdminUser {
+  id        Int     @id @default(autoincrement())
+  email     String  @unique @db.VarChar(255)
+  passwordHash String  @map("password_hash") @db.VarChar(255)
+  fullName  String  @map("full_name") @db.VarChar(255)
+  role      String  @default("manager") @db.VarChar(50) // 'superadmin' | 'manager'
+  isActive  Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("admin_users")
+}
+
+// 2. SERVICE_CATEGORIES
+model ServiceCategory {
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(255)
+  sortOrder Int     @default(0) @map("sort_order") @db.SmallInt
+  isActive  Boolean @default(true) @map("is_active")
+
+  services  Service[]
+
+  @@map("service_categories")
+}
+
+// 3. SERVICES
+model Service {
+  id          Int     @id @default(autoincrement())
+  categoryId  Int     @map("category_id")
+  name        String  @db.VarChar(255)
+  description String  @default("")
+  priceFrom   Decimal? @map("price_from") @db.Decimal(10, 2)
+  priceUnit   String? @map("price_unit") @db.VarChar(50)
+  imagePath   String? @map("image_path") @db.VarChar(500)
+  isActive    Boolean @default(true) @map("is_active")
+  sortOrder   Int     @default(0) @map("sort_order") @db.SmallInt
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  category    ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orders      ServiceOrder[]
+
+  @@map("services")
+}
+
+// 4. SERVICE_ORDERS
+model ServiceOrder {
+  id        Int     @id @default(autoincrement())
+  serviceId Int?    @map("service_id")
+  serviceName String @map("service_name") @db.VarChar(255)
+  clientName String @map("client_name") @db.VarChar(255)
+  phone     String  @db.VarChar(50)
+  email     String? @db.VarChar(255)
+  status    String  @default("new") @db.VarChar(50) // 'new' | 'in_progress' | 'completed' | 'cancelled'
+  managerNote String? @map("manager_note")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@map("service_orders")
+}
+
+// 5. VACANCIES
+model Vacancy {
+  id          Int     @id @default(autoincrement())
+  title       String  @db.VarChar(255)
+  schedule    String? @db.VarChar(255)
+  salaryFrom  Decimal? @map("salary_from") @db.Decimal(10, 2)
+  salaryUnit  String  @default("руб/мес") @map("salary_unit") @db.VarChar(50)
+  experience  String? @db.VarChar(255)
+  requirements String?
+  conditions  String?
+  isActive    Boolean @default(true) @map("is_active")
+  sortOrder   Int     @default(0) @map("sort_order") @db.SmallInt
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  duties      VacancyDuty[]
+  resumes     Resume[]
+
+  @@map("vacancies")
+}
+
+// 6. VACANCY_DUTIES
+model VacancyDuty {
+  id        Int     @id @default(autoincrement())
+  vacancyId Int     @map("vacancy_id")
+  dutyText  String  @map("duty_text")
+  sortOrder Int     @default(0) @map("sort_order") @db.SmallInt
+
+  vacancy   Vacancy @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+
+  @@map("vacancy_duties")
+}
+
+// 7. RESUMES
+model Resume {
+  id            Int     @id @default(autoincrement())
+  vacancyId     Int?    @map("vacancy_id")
+  vacancyTitle  String  @map("vacancy_title") @db.VarChar(255)
+  fullName      String  @map("full_name") @db.VarChar(255)
+  phone         String  @db.VarChar(50)
+  resumeFilePath String? @map("resume_file_path") @db.VarChar(500)
+  status        String  @default("new") @db.VarChar(50) // 'new' | 'viewed' | 'interview' | 'hired' | 'rejected'
+  hrNote        String? @map("hr_note")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  vacancy       Vacancy? @relation(fields: [vacancyId], references: [id], onDelete: SetNull)
+
+  @@map("resumes")
+}
+
+// 8. CLIENTS
+model Client {
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(255)
+  category  String  @db.VarChar(100) // 'Магазины' | 'Рестораны' | 'Банки и гос. учреждения' | 'Торговые центры' | 'Фабрики и склады'
+  logoPath  String? @map("logo_path") @db.VarChar(500)
+  isActive  Boolean @default(true) @map("is_active")
+  sortOrder Int     @default(0) @map("sort_order") @db.SmallInt
+
+  @@map("clients")
+}
+
+// 9. REVIEWS
+model Review {
+  id        Int     @id @default(autoincrement())
+  authorName String @map("author_name") @db.VarChar(255)
+  reviewText String @map("review_text")
+  isActive  Boolean @default(true) @map("is_active")
+  sortOrder Int     @default(0) @map("sort_order") @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("reviews")
+}
+
+// 10. CONTACT_MESSAGES
+model ContactMessage {
+  id        Int     @id @default(autoincrement())
+  fullName  String  @map("full_name") @db.VarChar(255)
+  phone     String  @db.VarChar(50)
+  email     String? @db.VarChar(255)
+  message   String
+  isRead    Boolean @default(false) @map("is_read")
+  adminReply String? @map("admin_reply")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("contact_messages")
+}
