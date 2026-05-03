@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import 'dotenv/config';
 import prisma from './db.js';
 import multer from 'multer';
+import fs from 'fs';
 import session from 'express-session';
 import bcrypt from 'bcryptjs';
 import AdminJSExpress from '@adminjs/express';
@@ -28,9 +29,16 @@ app.use(session({
   cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
+const resumesDir = path.join(__dirname, '../public/uploads/resumes');
+try {
+  fs.mkdirSync(resumesDir, { recursive: true });
+} catch (err) {
+  console.error('Could not create resumes directory', err);
+}
+
 const resumeStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/uploads/resumes/');
+    cb(null, resumesDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -38,16 +46,25 @@ const resumeStorage = multer.diskStorage({
     cb(null, 'resume-' + uniqueSuffix + ext);
   }
 });
-const uploadResume = multer({ storage: resumeStorage });
 
-// Функции валидации
+const uploadResume = multer({
+  storage: resumeStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.pdf', '.doc', '.docx', '.rtf', '.txt'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) cb(null, true);
+    else cb(new Error('Недопустимый формат файла. Разрешены: PDF, DOC, DOCX, RTF, TXT'));
+  }
+});
+
 const validatePhone = (phone) => {
   const phoneRegex = /[\d\s\-\+\(\)]{10,}/;
   return phoneRegex.test(phone?.trim() || '');
 };
 
 const validateEmail = (email) => {
-  if (!email) return true; // Email необязателен
+  if (!email) return true;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
@@ -196,6 +213,17 @@ app.get('/vacancies', async (req, res) => {
 app.post('/api/service-orders', async (req, res) => {
   try {
     const { service_id, service_name, client_name, phone, email } = req.body;
+    
+    if (!validateName(client_name)) {
+      return res.status(400).send('Пожалуйста, введите корректное имя (минимум 2 символа)');
+    }
+    if (!validatePhone(phone)) {
+      return res.status(400).send('Пожалуйста, введите корректный номер телефона');
+    }
+    if (!validateEmail(email)) {
+      return res.status(400).send('Пожалуйста, введите корректный Email');
+    }
+    
     await prisma.serviceOrder.create({
       data: {
         serviceId: service_id ? parseInt(service_id) : null,
@@ -216,6 +244,17 @@ app.post('/api/service-orders', async (req, res) => {
 app.post('/api/service-orders/ajax', async (req, res) => {
   try {
     const { service_id, service_name, client_name, phone, email } = req.body;
+    
+    if (!validateName(client_name)) {
+      return res.status(400).json({ success: false, message: 'Пожалуйста, введите корректное имя (минимум 2 символа)' });
+    }
+    if (!validatePhone(phone)) {
+      return res.status(400).json({ success: false, message: 'Пожалуйста, введите корректный номер телефона' });
+    }
+    if (!validateEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Пожалуйста, введите корректный Email' });
+    }
+    
     await prisma.serviceOrder.create({
       data: {
         serviceId: service_id ? parseInt(service_id) : null,
@@ -229,7 +268,7 @@ app.post('/api/service-orders/ajax', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Ошибка сохранения заявки (AJAX):', err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: 'Ошибка сохранения заявки' });
   }
 });
 
@@ -237,7 +276,6 @@ app.post('/api/contact-messages', async (req, res) => {
   try {
     const { full_name, phone, email, message } = req.body;
     
-    // Валидация
     if (!validateName(full_name)) {
       return res.status(400).send('Пожалуйста, введите корректное ФИО (минимум 2 символа)');
     }
@@ -266,25 +304,72 @@ app.post('/api/contact-messages', async (req, res) => {
   }
 });
 
-app.post('/api/resumes', uploadResume.single('resume_file'), async (req, res) => {
-  try {
-    const { vacancy_id, vacancy_title, full_name, phone } = req.body;
-    const resumeFilePath = req.file ? '/uploads/resumes/' + req.file.filename : null;
-    
-    await prisma.resume.create({
-      data: {
-        vacancyId: vacancy_id ? parseInt(vacancy_id) : null,
-        vacancyTitle: vacancy_title,
-        fullName: full_name,
-        phone,
-        resumeFilePath,
-        status: 'new'
+app.post('/api/resumes', (req, res) => {
+  uploadResume.single('resume_file')(req, res, async (err) => {
+    if (err) {
+      console.error('Upload error:', err);
+      if (err instanceof multer.MulterError) {
+        return res.status(400).send(`Ошибка загрузки файла: ${err.message}`);
       }
-    });
-    res.redirect('/vacancies?msg=resume_sent');
+      return res.status(400).send(err.message || 'Ошибка при загрузке файла');
+    }
+
+    try {
+      const { vacancy_id, vacancy_title, full_name, phone } = req.body;
+      const resumeFilePath = req.file ? '/uploads/resumes/' + req.file.filename : null;
+
+      if (!validateName(full_name)) {
+        return res.status(400).send('Пожалуйста, введите корректное ФИО (минимум 2 символа)');
+      }
+      if (!validatePhone(phone)) {
+        return res.status(400).send('Пожалуйста, введите корректный номер телефона');
+      }
+
+      await prisma.resume.create({
+        data: {
+          vacancyId: vacancy_id ? parseInt(vacancy_id) : null,
+          vacancyTitle: vacancy_title,
+          fullName: full_name,
+          phone,
+          resumeFilePath,
+          status: 'new'
+        }
+      });
+      res.redirect('/vacancies?msg=resume_sent');
+    } catch (e) {
+      console.error('Error saving resume record:', e);
+      res.status(500).send('Ошибка отправки отклика');
+    }
+  });
+});
+
+app.get('/download/resume/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const r = await prisma.resume.findUnique({ where: { id } });
+    if (!r || !r.resumeFilePath) return res.status(404).send('Файл не найден');
+
+    const filePath = path.join(__dirname, '../public', r.resumeFilePath.replace(/^\//, ''));
+    if (!fs.existsSync(filePath)) return res.status(404).send('Файл не найден');
+
+    res.download(filePath);
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Ошибка отправки отклика');
+    console.error('Download error:', err);
+    res.status(500).send('Ошибка загрузки файла');
+  }
+});
+
+app.get('/admin/redirect/resume/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const r = await prisma.resume.findUnique({ where: { id } });
+    if (!r || !r.resumeFilePath) return res.status(404).send('Файл не найден');
+
+    const downloadUrl = `/download/resume/${id}`;
+    res.send(`<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${downloadUrl}"></head><body><script>window.location.href='${downloadUrl}';</script><p>Перенаправление... <a href="${downloadUrl}">если не произошло автоматически, нажмите здесь</a></p></body></html>`);
+  } catch (err) {
+    console.error('Admin redirect error:', err);
+    res.status(500).send('Ошибка перенаправления');
   }
 });
 

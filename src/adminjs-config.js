@@ -225,7 +225,30 @@ export const getAdminJSConfig = (prisma) => {
           },
           actions: {
             new: { isAccessible: false },
-            delete: { isAccessible: false }
+            delete: { isAccessible: false },
+            download: {
+              actionType: 'record',
+              icon: 'Download',
+              isVisible: true,
+              label: 'Скачать',
+              guard: 'Скачать файл резюме?',
+              handler: async (request, response, context) => {
+                const { record } = context;
+                if (!record) {
+                  return {
+                    record: record?.toJSON(),
+                    notice: {
+                      message: 'Запись не найдена',
+                      type: 'error'
+                    }
+                  };
+                }
+                const id = record.params.id;
+                return {
+                  redirectUrl: `/download/resume/${id}`
+                };
+              }
+            }
           }
         }
       },
@@ -331,6 +354,7 @@ export const getAdminJSConfig = (prisma) => {
                 response.records.forEach(record => {
                   record.params.vacancyTitle =
                     record.populated?.vacancy?.params?.title || '—';
+                  record.params.downloadLink = record.params.id ? `/download/resume/${record.params.id}` : '';
                 });
                 return response;
               }
@@ -341,7 +365,7 @@ export const getAdminJSConfig = (prisma) => {
             name: 'Резюме',
             icon: 'FileText'
           },
-          listProperties: ['id', 'vacancy', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'status', 'hrNote', 'createdAt', 'updatedAt'],
+          listProperties: ['id', 'vacancy', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'downloadLink', 'status', 'hrNote', 'createdAt', 'updatedAt'],
           showProperties: ['id', 'vacancy', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'status', 'hrNote', 'createdAt', 'updatedAt'],
           editProperties: ['vacancyId', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'status', 'hrNote'],
           filterProperties: ['id', 'vacancy', 'vacancyTitle', 'fullName', 'phone', 'status'],
@@ -361,6 +385,7 @@ export const getAdminJSConfig = (prisma) => {
             fullName: { position: 5, isTitle: true },
             phone: { position: 6 },
             resumeFilePath: { position: 7 },
+            downloadLink: { position: 8, isVisible: { list: true, filter: false, show: false, edit: false } },
             status: {
               position: 8,
               type: 'select',
@@ -381,6 +406,28 @@ export const getAdminJSConfig = (prisma) => {
             updatedAt: { position: 11, isVisible: { edit: false }, type: 'datetime' }
           },
           actions: {
+            list: { isAccessible: true },
+            download: {
+              actionType: 'record',
+              icon: 'Download',
+              isVisible: true,
+              label: 'Скачать',
+              guard: 'Скачать файл резюме?',
+              handler: async (request, response, context) => {
+                const { record } = context;
+                if (!record) {
+                  return {
+                    record: record?.toJSON(),
+                    notice: { message: 'Запись не найдена', type: 'error' }
+                  };
+                }
+                const id = record.params.id;
+                return {
+                  record: record.toJSON(),
+                  redirectUrl: `/admin/redirect/resume/${id}`
+                };
+              }
+            },
             new: { isAccessible: false },
             delete: { isAccessible: false }
           }

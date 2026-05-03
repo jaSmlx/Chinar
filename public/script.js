@@ -281,6 +281,11 @@ if (serviceModal) {
     serviceModalForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
+      if (!serviceModalForm.checkValidity()) {
+        serviceModalForm.reportValidity();
+        return;
+      }
+
       const formData = new FormData(serviceModalForm);
       const data = Object.fromEntries(formData.entries());
 
@@ -291,12 +296,21 @@ if (serviceModal) {
           body: JSON.stringify(data)
         });
 
-        if (response.ok) {
+        const responseData = await response.json().catch(() => null);
+
+        if (response.ok && responseData && responseData.success) {
           closeServiceModal();
           showToast('✓ Заявка отправлена! Мы перезвоним в течение 30 минут.');
           serviceModalForm.reset();
         } else {
-          showToast('Произошла ошибка. Попробуйте позже.');
+          const firstInput = serviceModalForm.querySelector('input, textarea, select');
+          if (responseData && responseData.message && firstInput) {
+            firstInput.setCustomValidity(responseData.message);
+            firstInput.reportValidity();
+            setTimeout(() => { firstInput.setCustomValidity(''); }, 3000);
+          } else {
+            showToast((responseData && responseData.message) || 'Произошла ошибка. Попробуйте позже.');
+          }
         }
       } catch (err) {
         console.error('Ошибка отправки заявки:', err);
@@ -304,6 +318,96 @@ if (serviceModal) {
       }
     });
   }
+}
+
+function clearCustomValidity(form) {
+  form.querySelectorAll('input, textarea, select').forEach(el => {
+    try { el.setCustomValidity(''); } catch (e) {}
+  });
+}
+
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!contactForm.checkValidity()) {
+      contactForm.reportValidity();
+      return;
+    }
+
+    clearCustomValidity(contactForm);
+
+    const fd = new FormData(contactForm);
+    const data = Object.fromEntries(fd.entries());
+
+    try {
+      const resp = await fetch('/api/contact-messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (resp.ok) {
+        showToast('✓ Сообщение отправлено!');
+        contactForm.reset();
+      } else {
+        const text = await resp.text().catch(() => 'Ошибка отправки');
+        const firstInput = contactForm.querySelector('input, textarea, select');
+        if (firstInput) {
+          firstInput.setCustomValidity(text);
+          firstInput.reportValidity();
+          setTimeout(() => firstInput.setCustomValidity(''), 3000);
+        } else {
+          showToast(text);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Не удалось отправить сообщение. Проверьте соединение.');
+    }
+  });
+}
+
+const resumeForm = document.getElementById('resumeFormElement');
+if (resumeForm) {
+  resumeForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!resumeForm.checkValidity()) {
+      resumeForm.reportValidity();
+      return;
+    }
+
+    clearCustomValidity(resumeForm);
+
+    const fd = new FormData(resumeForm);
+
+    try {
+      const resp = await fetch('/api/resumes', {
+        method: 'POST',
+        body: fd
+      });
+
+      if (resp.ok) {
+        showToast('✓ Резюме отправлено!');
+        resumeForm.reset();
+      } else {
+        const text = await resp.text().catch(() => 'Ошибка отправки отклика');
+        const firstInput = resumeForm.querySelector('input, textarea, select');
+        if (firstInput) {
+          firstInput.setCustomValidity(text);
+          firstInput.reportValidity();
+          setTimeout(() => firstInput.setCustomValidity(''), 3000);
+        } else {
+          showToast(text);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Не удалось отправить отклик. Проверьте соединение.');
+    }
+  });
 }
 
 document.querySelectorAll('.vacancy-accordion').forEach(accordion => {
