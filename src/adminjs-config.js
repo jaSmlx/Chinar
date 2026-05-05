@@ -1,5 +1,13 @@
 import AdminJS from 'adminjs';
 
+const createCloudinaryRawUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  if (!cloudName) return path;
+  return `https://res.cloudinary.com/${cloudName}/raw/upload/${path}`;
+};
+
 const getPrismaModel = (prisma, modelName) => {
   const model = prisma._runtimeDataModel?.models?.[modelName];
   if (!model) {
@@ -140,7 +148,7 @@ export const getAdminJSConfig = (prisma) => {
           },
           listProperties: ['id', 'name', 'category', 'priceFrom', 'priceUnit', 'isActive', 'sortOrder', 'createdAt', 'updatedAt'],
           showProperties: ['id', 'name', 'category', 'description', 'priceFrom', 'priceUnit', 'imagePath', 'isActive', 'sortOrder', 'createdAt', 'updatedAt'],
-          editProperties: ['name', 'categoryId', 'description', 'priceFrom', 'priceUnit', 'imagePath', 'isActive', 'sortOrder'],
+          editProperties: ['name', 'category', 'description', 'priceFrom', 'priceUnit', 'imagePath', 'isActive', 'sortOrder'],
           filterProperties: ['id', 'name', 'category', 'isActive'],
           properties: {
             id: { position: 1, isVisible: { list: true, filter: true, show: true, edit: false } },
@@ -148,12 +156,12 @@ export const getAdminJSConfig = (prisma) => {
             category: {
               position: 3,
               reference: 'ServiceCategory',
-              isVisible: { list: true, filter: true, show: true, edit: false }
+              isVisible: { list: true, filter: true, show: true, edit: true }
             },
             categoryId: {
               position: 4,
               reference: 'ServiceCategory',
-              isVisible: { list: false, filter: true, show: false, edit: true }
+              isVisible: { list: false, filter: false, show: false, edit: false }
             },
             description: { position: 5, type: 'textarea' },
             priceFrom: { position: 6, type: 'number' },
@@ -225,30 +233,7 @@ export const getAdminJSConfig = (prisma) => {
           },
           actions: {
             new: { isAccessible: false },
-            delete: { isAccessible: false },
-            download: {
-              actionType: 'record',
-              icon: 'Download',
-              isVisible: true,
-              label: 'Скачать',
-              guard: 'Скачать файл резюме?',
-              handler: async (request, response, context) => {
-                const { record } = context;
-                if (!record) {
-                  return {
-                    record: record?.toJSON(),
-                    notice: {
-                      message: 'Запись не найдена',
-                      type: 'error'
-                    }
-                  };
-                }
-                const id = record.params.id;
-                return {
-                  redirectUrl: `/download/resume/${id}`
-                };
-              }
-            }
+            delete: { isAccessible: false }
           }
         }
       },
@@ -295,7 +280,7 @@ export const getAdminJSConfig = (prisma) => {
 
           listProperties: ['id', 'vacancy', 'vacancyTitle', 'dutyText', 'sortOrder'],
           showProperties: ['id', 'vacancy', 'vacancyTitle', 'dutyText', 'sortOrder'],
-          editProperties: ['vacancyId', 'dutyText', 'sortOrder'],
+          editProperties: ['vacancy', 'dutyText', 'sortOrder'],
 
           properties: {
             id: { position: 1, isVisible: { list: true, filter: true, show: true, edit: false } },
@@ -303,12 +288,12 @@ export const getAdminJSConfig = (prisma) => {
             vacancy: {
               position: 2,
               reference: 'Vacancy',
-              isVisible: { list: true, show: true, filter: true, edit: false }
+              isVisible: { list: true, show: true, filter: true, edit: true }
             },
 
             vacancyId: {
               reference: 'Vacancy',
-              isVisible: { list: false, show: false, filter: true, edit: true }
+              isVisible: { list: false, show: false, filter: false, edit: false }
             },
 
             vacancyTitle: {
@@ -352,10 +337,21 @@ export const getAdminJSConfig = (prisma) => {
             list: {
               after: async (response) => {
                 response.records.forEach(record => {
+                  if (record.params.resumeFilePath && !record.params.resumeFilePath.startsWith('http')) {
+                    record.params.resumeFilePath = createCloudinaryRawUrl(record.params.resumeFilePath);
+                  }
                   record.params.vacancyTitle =
                     record.populated?.vacancy?.params?.title || '—';
-                  record.params.downloadLink = record.params.id ? `/download/resume/${record.params.id}` : '';
                 });
+                return response;
+              }
+            },
+            show: {
+              after: async (response) => {
+                const record = response.record;
+                if (record && record.params.resumeFilePath && !record.params.resumeFilePath.startsWith('http')) {
+                  record.params.resumeFilePath = createCloudinaryRawUrl(record.params.resumeFilePath);
+                }
                 return response;
               }
             }
@@ -365,27 +361,26 @@ export const getAdminJSConfig = (prisma) => {
             name: 'Резюме',
             icon: 'FileText'
           },
-          listProperties: ['id', 'vacancy', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'downloadLink', 'status', 'hrNote', 'createdAt', 'updatedAt'],
+          listProperties: ['id', 'vacancy', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'status', 'hrNote', 'createdAt', 'updatedAt'],
           showProperties: ['id', 'vacancy', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'status', 'hrNote', 'createdAt', 'updatedAt'],
-          editProperties: ['vacancyId', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'status', 'hrNote'],
+          editProperties: ['vacancy', 'vacancyTitle', 'fullName', 'phone', 'resumeFilePath', 'status', 'hrNote'],
           filterProperties: ['id', 'vacancy', 'vacancyTitle', 'fullName', 'phone', 'status'],
           properties: {
             id: { position: 1, isVisible: { list: true, filter: true, show: true, edit: false } },
             vacancy: {
               position: 2,
               reference: 'Vacancy',
-              isVisible: { list: true, filter: true, show: true, edit: false }
+              isVisible: { list: true, filter: true, show: true, edit: true }
             },
             vacancyId: {
               position: 3,
               reference: 'Vacancy',
-              isVisible: { list: false, filter: true, show: false, edit: true }
+              isVisible: { list: false, filter: false, show: false, edit: false }
             },
             vacancyTitle: { position: 4, isVisible: { list: true, show: true, edit: false, filter: false } },
             fullName: { position: 5, isTitle: true },
             phone: { position: 6 },
             resumeFilePath: { position: 7 },
-            downloadLink: { position: 8, isVisible: { list: true, filter: false, show: false, edit: false } },
             status: {
               position: 8,
               type: 'select',
@@ -407,27 +402,6 @@ export const getAdminJSConfig = (prisma) => {
           },
           actions: {
             list: { isAccessible: true },
-            download: {
-              actionType: 'record',
-              icon: 'Download',
-              isVisible: true,
-              label: 'Скачать',
-              guard: 'Скачать файл резюме?',
-              handler: async (request, response, context) => {
-                const { record } = context;
-                if (!record) {
-                  return {
-                    record: record?.toJSON(),
-                    notice: { message: 'Запись не найдена', type: 'error' }
-                  };
-                }
-                const id = record.params.id;
-                return {
-                  record: record.toJSON(),
-                  redirectUrl: `/admin/redirect/resume/${id}`
-                };
-              }
-            },
             new: { isAccessible: false },
             delete: { isAccessible: false }
           }

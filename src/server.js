@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 import 'dotenv/config';
 import prisma from './db.js';
 import multer from 'multer';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+import streamifier from 'streamifier';
 import session from 'express-session';
 import bcrypt from 'bcryptjs';
 import AdminJSExpress from '@adminjs/express';
@@ -29,26 +30,15 @@ app.use(session({
   cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-const resumesDir = path.join(__dirname, '../public/uploads/resumes');
-try {
-  fs.mkdirSync(resumesDir, { recursive: true });
-} catch (err) {
-  console.error('Could not create resumes directory', err);
-}
-
-const resumeStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, resumesDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, 'resume-' + uniqueSuffix + ext);
-  }
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
 });
 
 const uploadResume = multer({
-  storage: resumeStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['.pdf', '.doc', '.docx', '.rtf', '.txt'];
@@ -57,6 +47,48 @@ const uploadResume = multer({
     else cb(new Error('Недопустимый формат файла. Разрешены: PDF, DOC, DOCX, RTF, TXT'));
   }
 });
+
+const normalizeCloudinaryPublicId = (originalName) => {
+  const ext = path.extname(originalName).toLowerCase().replace(/^[.]/, '') || 'pdf';
+  const baseName = path.basename(originalName, path.extname(originalName))
+    .replace(/[^a-zA-Z0-9-_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase() || 'resume';
+
+  return {
+    publicId: `${baseName}_${Date.now()}`,
+    format: ext
+  };
+};
+
+const uploadResumeToCloudinary = (buffer, originalname) => {
+  const ext = path.extname(originalname).replace('.', '').toLowerCase();
+  const baseName = path.basename(originalname, path.extname(originalname))
+    .replace(/[^a-zA-Z0-9-_]/g, '_')
+    .toLowerCase() || 'resume';
+
+  const publicId = `resume_${Date.now()}`;
+
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'resumes',
+        public_id: publicId,
+        resource_type: 'raw',
+        format: ext,
+        access_mode: 'public',
+        overwrite: false,
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
+};
 
 const validatePhone = (phone) => {
   const phoneRegex = /[\d\s\-\+\(\)]{10,}/;
@@ -316,7 +348,9 @@ app.post('/api/resumes', (req, res) => {
 
     try {
       const { vacancy_id, vacancy_title, full_name, phone } = req.body;
-      const resumeFilePath = req.file ? '/uploads/resumes/' + req.file.filename : null;
+      if (!req.file) {
+        return res.status(400).send('Пожалуйста, загрузите файл резюме');
+      }
 
       if (!validateName(full_name)) {
         return res.status(400).send('Пожалуйста, введите корректное ФИО (минимум 2 символа)');
@@ -325,52 +359,26 @@ app.post('/api/resumes', (req, res) => {
         return res.status(400).send('Пожалуйста, введите корректный номер телефона');
       }
 
+      const uploadResult = await uploadResumeToCloudinary(req.file.buffer, req.file.originalname);
+      const resumeFilePath = uploadResult.secure_url;
+
       await prisma.resume.create({
-        data: {
-          vacancyId: vacancy_id ? parseInt(vacancy_id) : null,
-          vacancyTitle: vacancy_title,
-          fullName: full_name,
-          phone,
-          resumeFilePath,
-          status: 'new'
-        }
-      });
+      data: {
+        vacancyId: vacancy_id ? parseInt(vacancy_id) : null,
+        vacancyTitle: vacancy_title,
+        fullName: full_name,
+        phone,
+        resumeFilePath,
+        status: 'new'
+      }
+    });
       res.redirect('/vacancies?msg=resume_sent');
     } catch (e) {
       console.error('Error saving resume record:', e);
+      res.status(500).send(`Ошибка отправки отклика: ${e.message}`);
       res.status(500).send('Ошибка отправки отклика');
     }
   });
-});
-
-app.get('/download/resume/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const r = await prisma.resume.findUnique({ where: { id } });
-    if (!r || !r.resumeFilePath) return res.status(404).send('Файл не найден');
-
-    const filePath = path.join(__dirname, '../public', r.resumeFilePath.replace(/^\//, ''));
-    if (!fs.existsSync(filePath)) return res.status(404).send('Файл не найден');
-
-    res.download(filePath);
-  } catch (err) {
-    console.error('Download error:', err);
-    res.status(500).send('Ошибка загрузки файла');
-  }
-});
-
-app.get('/admin/redirect/resume/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const r = await prisma.resume.findUnique({ where: { id } });
-    if (!r || !r.resumeFilePath) return res.status(404).send('Файл не найден');
-
-    const downloadUrl = `/download/resume/${id}`;
-    res.send(`<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${downloadUrl}"></head><body><script>window.location.href='${downloadUrl}';</script><p>Перенаправление... <a href="${downloadUrl}">если не произошло автоматически, нажмите здесь</a></p></body></html>`);
-  } catch (err) {
-    console.error('Admin redirect error:', err);
-    res.status(500).send('Ошибка перенаправления');
-  }
 });
 
 const PORT = process.env.PORT || 3000;

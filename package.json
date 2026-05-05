@@ -25,13 +25,15 @@
     "@adminjs/express": "^6.1.1",
     "@adminjs/prisma": "^5.0.0",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "multer": "^1.4.5-lts.1",
-    "pg": "^8.13.3"
+    "pg": "^8.13.3",
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "@types/express-session": "^1.18.0",
