@@ -48,7 +48,6 @@
                 <% category.services.forEach(service => { %>
 
                   <%
-                    // Карточка «Каталог» — открывает каталог, все остальные — обычное модальное окно
                     const isCatalog = service.name === 'Каталог услуг' || service.name === 'Каталог';
                   %>
 
@@ -69,7 +68,7 @@
                         <p class="service-card-price">от <%= service.priceFrom %> <%= service.priceUnit %></p>
                       <% } %>
                       <% if (isCatalog) { %>
-                        <p class="service-card-price catalog-hint">Нажмите, чтобы открыть →</p>
+                        <p class="service-card-price catalog-hint">Нажмите, чтобы открыть</p>
                       <% } %>
                     </div>
                   </div>
@@ -134,83 +133,96 @@
     </div>
   </div>
 
-  <div class="catalog-modal-overlay" id="catalogModal" role="dialog" aria-modal="true" aria-label="Каталог услуг">
-    <div class="catalog-modal">
+<div class="catalog-modal-overlay" id="catalogModal" role="dialog" aria-modal="true" aria-label="Каталог услуг">
+  <div class="catalog-modal">
 
-      <div class="catalog-modal-header">
-        <div class="catalog-modal-header-text">
-          <span class="catalog-modal-label">Полный перечень</span>
-          <h2 class="catalog-modal-title">Каталог услуг</h2>
-        </div>
-        <button class="catalog-modal-close" id="catalogClose" aria-label="Закрыть">&times;</button>
+    <div class="catalog-modal-header">
+      <div class="catalog-modal-header-text">
+        <span class="catalog-modal-label">Полный перечень</span>
+        <h2 class="catalog-modal-title">Каталог услуг</h2>
       </div>
+      <button class="catalog-modal-close" id="catalogClose" aria-label="Закрыть">&times;</button>
+    </div>
 
-      <div class="catalog-modal-body">
-        <% if (typeof categories !== 'undefined') { %>
-          <% categories.forEach((category, catIdx) => { %>
-            <% if (category.services && category.services.length > 0) { %>
-
-              <div class="catalog-section">
-                <div class="catalog-section-header">
-                  <span class="catalog-section-num"><%= String(catIdx + 1).padStart(2, '0') %></span>
-                  <h3 class="catalog-section-title"><%= category.name %></h3>
-                </div>
-
-                <div class="catalog-items">
-                  <% category.services.forEach(service => { %>
-                    <% const isCat = service.name === 'Каталог услуг' || service.name === 'Каталог'; %>
-                    <% if (!isCat) { %>
-                      <div class="catalog-item">
-
-                        <div class="catalog-item-left">
-                          <img
-                            src="<%= service.imagePath ? (service.imagePath.startsWith('/') ? service.imagePath : '/' + service.imagePath) : '/img/services/placeholder.png' %>"
-                            alt="<%= service.name %>"
-                            class="catalog-item-img"
-                          />
-                          <div class="catalog-item-info">
-                            <span class="catalog-item-name"><%= service.name %></span>
-                            <span class="catalog-item-desc"><%= service.description %></span>
-                          </div>
-                        </div>
-
-                        <div class="catalog-item-right">
-                          <% if (service.priceFrom) { %>
-                            <span class="catalog-item-price">
-                              от <%= service.priceFrom %> <span class="catalog-item-unit"><%= service.priceUnit %></span>
-                            </span>
-                          <% } else { %>
-                            <span class="catalog-item-price catalog-item-price--free">По запросу</span>
-                          <% } %>
-                          <button
-                            class="catalog-item-order-btn"
-                            data-service="<%= service.name %>"
-                            data-service-id="<%= service.id %>"
-                            data-price="<% if (service.priceFrom) { %>от <%= service.priceFrom %> <%= service.priceUnit %><% } %>"
-                            data-desc="<%= service.description %>"
-                          >
-                            Заказать
-                          </button>
-                        </div>
-
-                      </div>
-                    <% } %>
-                  <% }) %>
-                </div>
+    <div class="catalog-modal-body">
+      <% if (typeof categories !== 'undefined') { %>
+        <% categories.forEach((category, catIdx) => { %>
+          <%
+            const visibleServices = category.services.filter(service =>
+              service.name !== 'Каталог услуг' &&
+              service.name !== 'Каталог'
+            );
+          %>
+          <% if (visibleServices.length > 0) { %>
+            <div class="catalog-section">
+              <div class="catalog-section-header">
+                <span class="catalog-section-num">
+                  <%= String(catIdx + 1).padStart(2, '0') %>
+                </span>
+                <h3 class="catalog-section-title">
+                  <%= category.name %>
+                </h3>
               </div>
+              <div class="catalog-items">
+                <% visibleServices.forEach(service => { %>
+                  <div class="catalog-item">
+                    <div class="catalog-item-left">
+                      <img
+                        src="<%= service.imagePath ? (service.imagePath.startsWith('/') ? service.imagePath : '/' + service.imagePath) : '/img/services/placeholder.png' %>"
+                        alt="<%= service.name %>"
+                        class="catalog-item-img"
+                      />
+                      <div class="catalog-item-info">
+                        <span class="catalog-item-name">
+                          <%= service.name %>
+                        </span>
+                        <span class="catalog-item-desc">
+                          <%= service.description %>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="catalog-item-right">
+                      <% if (service.priceFrom) { %>
+                        <span class="catalog-item-price">
+                          от <%= service.priceFrom %>
+                          <span class="catalog-item-unit">
+                            <%= service.priceUnit %>
+                          </span>
+                        </span>
+                      <% } else { %>
+                        <span class="catalog-item-price catalog-item-price--free">
+                          По запросу
+                        </span>
+                      <% } %>
+                      <button
+                        class="catalog-item-order-btn"
+                        data-service="<%= service.name %>"
+                        data-service-id="<%= service.id %>"
+                        data-price="<% if (service.priceFrom) { %>от <%= service.priceFrom %> <%= service.priceUnit %><% } %>"
+                        data-desc="<%= service.description %>"
+                      >
+                        Заказать
+                      </button>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+        <% }) %>
+      <% } %>
+    </div>
 
-            <% } %>
-          <% }) %>
-        <% } %>
-      </div>
-
-      <div class="catalog-modal-footer">
-        <p class="catalog-modal-footer-text">Не нашли нужную услугу? Свяжитесь с нами — подберём решение</p>
-        <a href="/contacts" class="catalog-modal-contact-btn">Написать нам</a>
-      </div>
-
+    <div class="catalog-modal-footer">
+      <p class="catalog-modal-footer-text">
+        Не нашли нужную услугу? Свяжитесь с нами — подберём решение
+      </p>
+      <a href="/contacts" class="catalog-modal-contact-btn">
+        Написать нам
+      </a>
     </div>
   </div>
+</div>
 
   <footer class="site-footer">
     <div class="footer-inner">
